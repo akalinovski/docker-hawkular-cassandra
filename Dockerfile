@@ -33,10 +33,10 @@ EXPOSE 7000
 EXPOSE 7001
 
 # The Hawkular Metrics Version
-ENV HAWKULAR_METRICS_VERSION 0.3.5-SNAPSHOT
+ENV HAWKULAR_METRICS_VERSION 0.5.0-SNAPSHOT
 
 # The Cassandra version
-ENV CASSANDRA_VERSION 2.1.3
+ENV CASSANDRA_VERSION 2.1.6
 
 # The Cassandra home location
 ENV CASSANDRA_HOME /opt/apache-cassandra
@@ -52,9 +52,9 @@ USER root
 
 # Copy the Cassandra binary to the /opt directory
 RUN cd /opt; \
-    curl -LO http://apache.mirrors.ionfish.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz; \
-    tar xzf apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz; \
-    rm apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz; \
+    curl -LO https://archive.apache.org/dist/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz && \
+    tar xzf apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz && \
+    rm apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz && \
     ln -s apache-cassandra-$CASSANDRA_VERSION apache-cassandra
 
 # Copy our version of the cassandra configuration file over to the filesystem
@@ -67,8 +67,11 @@ RUN cd $CASSANDRA_HOME/lib && \
 # Copy our customized run script over to the cassandra bin directory
 COPY cassandra-docker.sh /opt/apache-cassandra/bin/
 
-# Copy the preStop scriptover to the cassandra bin directory
+# Copy the preStop script over to the cassandra bin directory
 COPY cassandra-docker-pre-stop.sh /opt/apache-cassandra/bin/
+
+# Copy the Readiness script over to the cassandra bin directory
+COPY cassandra-docker-ready.sh /opt/apache-cassandra/bin/
 
 # TODO: remove this line once https://bugzilla.redhat.com/show_bug.cgi?id=1201848 has been fixed
 ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -78,5 +81,13 @@ ENV PATH /opt/apache-cassandra/bin:$PATH
 
 # The name of the service exposing the Cassandra nodes
 ENV CASSANDRA_NODES_SERVICE_NAME hawkular-cassandra-nodes
+
+# Create a 'Cassandra' user to own the directory and set it to be readable & writable by any user
+RUN groupadd -r cassandra -g 312 && \
+    useradd -u 313 -r -g cassandra -d /opt/apache-cassandra -s /sbin/nologin cassandra && \
+    chown -R cassandra:cassandra /opt/apache-cassandra && \
+    chmod -R go+rw /opt/apache-cassandra
+
+USER cassandra
 
 CMD ["/opt/apache-cassandra/bin/cassandra-docker.sh", "--seed_provider_classname=org.hawkular.openshift.cassandra.OpenshiftSeedProvider" ,"--cluster_name=hawkular-metrics"]
