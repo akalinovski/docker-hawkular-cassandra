@@ -62,7 +62,7 @@ COPY cassandra.yaml /opt/apache-cassandra/conf/cassandra.yaml
 
 # Copy the jar containing the Cassandra seed provider
 RUN cd $CASSANDRA_HOME/lib && \
-    curl -Lo cassandra-seed-provider.jar https://origin-repository.jboss.org/nexus/service/local/artifact/maven/content?r=public\&g=org.hawkular.metrics\&a=cassandra-seed-provider\&e=jar&v=${HAWKULAR_METRICS_VERSION}
+    curl -Lo cassandra-seed-provider.jar https://origin-repository.jboss.org/nexus/service/local/artifact/maven/content?r=public\&g=org.hawkular.metrics\&a=cassandra-seed-provider\&e=jar&\v=${HAWKULAR_METRICS_VERSION}
 
 # Copy our customized run script over to the cassandra bin directory
 COPY cassandra-docker.sh /opt/apache-cassandra/bin/
