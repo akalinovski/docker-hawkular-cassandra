@@ -1,3 +1,7 @@
+# RETIRED AND NO LONGER MAINTAINED
+
+### Superseeded by https://github.com/openshift/origin-metrics
+
 Hawkular Cassandra Docker Configuration
 ========================================
 
